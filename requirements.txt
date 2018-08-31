@@ -1,0 +1,9 @@
+beautifulsoup4==4.6.3
+bs4==0.0.1
+certifi==2018.8.24
+chardet==3.0.4
+idna==2.7
+joblib==0.12.3
+requests==2.19.1
+termcolor==1.1.0
+urllib3==1.23

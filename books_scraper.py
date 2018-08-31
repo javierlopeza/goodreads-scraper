@@ -100,7 +100,7 @@ def scrap(i, shelf):
 
 	BASE_URL = "https://www.goodreads.com"
 	page_url = BASE_URL + "/shelf/show/{}?page={}".format(shelf, i)
-	headers = {"Cookie":"csid=BAhJIhg5NzMtMTI1ODAzNi0zOTExMTkxBjoGRVQ%3D--c294349af6f6db36545ed72bef68a96b0d086ed6; locale=en; csm-sid=931-1667412-9657167; __utmc=250562704; __qca=P0-1082142114-1535571428658; never_show_interstitial=true; fbm_2415071772=base_domain=.goodreads.com; __utmz=250562704.1535640557.6.2.utmcsr=google|utmccn=(organic)|utmcmd=organic|utmctr=(not%20provided); __utma=250562704.1463770531.1535571425.1535666757.1535678979.10; __utmt=1; fblo_2415071772=y; u=MaEICRr8zxSTNf40VGNonARVJ6aPeASZYnVsBaBt8zjU5odQ; p=tVkv2BoNXkosOxiHmEDSpI-uF6IFEzQnSIcw85N6KSN-X9Xd; _session_id2=de8b03b2482c27d12db2c64f9dba2128; __utmb=250562704.12.10.1535678979"}
+	headers = {"Cookie":"csid=BAhJIhg5NzMtMTI1ODAzNi0zOTExMTkxBjoGRVQ%3D--c294349af6f6db36545ed72bef68a96b0d086ed6; locale=en; csm-sid=931-1667412-9657167; __utmc=250562704; __qca=P0-1082142114-1535571428658; never_show_interstitial=true; fbm_2415071772=base_domain=.goodreads.com; __utmz=250562704.1535640557.6.2.utmcsr=google|utmccn=(organic)|utmcmd=organic|utmctr=(not%20provided); __utma=250562704.1463770531.1535571425.1535666757.1535678979.10; fblo_2415071772=y; u=MaEICRr8zxSTNf40VGNonARVJ6aPeASZYnVsBaBt8zjU5odQ; p=tVkv2BoNXkosOxiHmEDSpI-uF6IFEzQnSIcw85N6KSN-X9Xd; _session_id2=bf455c1f36a867eb1037f3db9e0207c5; __utmt=1; __utmb=250562704.17.10.1535678979"}
 	try:
 		source = requests.get(page_url, timeout=5, headers=headers)
 	except:
@@ -121,8 +121,8 @@ def scrap(i, shelf):
 	return len(books)
 
 START = 1
-END = 6
+END = 8
 with open("shelves.txt", "r") as f:
 	shelves = f.read().splitlines()
-results = Parallel(n_jobs=4)(delayed(scrap)(i, shelf) for i in range(START, END + 1) for shelf in shelves)
+results = Parallel(n_jobs=4)(delayed(scrap)(i, shelf) for shelf in shelves for i in range(START, END + 1))
 print(results)

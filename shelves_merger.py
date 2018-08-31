@@ -55,7 +55,7 @@ def remove_duplicates(books):
 			unique_books[book["isbn"]] = book
 	return [clean_book(unique_books[i]) for i in unique_books]
 
-def merge_all(shelves, n=50):
+def merge_all(shelves, n=10, minify=False):
 	# Merge all shelves
 	books = []
 	for shelf in shelves:
@@ -64,12 +64,16 @@ def merge_all(shelves, n=50):
 	books = remove_duplicates(books)
 	# Dump all books
 	with open("books/_books.json".format(shelf), "w") as f:
-		json.dump({"books": books}, f, indent=4, separators=(',', ': '), sort_keys=True, ensure_ascii=False)
+		if minify:
+			json.dump({"books": books}, f, ensure_ascii=False)
+		else:
+			json.dump({"books": books}, f, indent=4, separators=(',', ': '), sort_keys=True, ensure_ascii=False)
+		
 	return len(books)
 		
 with open("shelves.txt", "r") as f:
 	shelves = f.read().splitlines()
-total_books = merge_all(shelves)
+total_books = merge_all(shelves, minify=False)
 
 print(colored("{:.0f} reviews per book (on average)".format(total_reviews / total_books), "yellow"))
 print(colored("{} unique books in total!".format(total_books), "green", attrs=["bold"]))

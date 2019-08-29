@@ -6,4 +6,4 @@ idna==2.7
 joblib==0.12.3
 requests==2.19.1
 termcolor==1.1.0
-urllib3==1.23
+urllib3==1.24.2

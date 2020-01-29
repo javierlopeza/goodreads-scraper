@@ -1,3 +1,9 @@
+comics
+favorites
+to-read
+young-adult
+contemporary
+historical-fiction
 biography
 crime
 science

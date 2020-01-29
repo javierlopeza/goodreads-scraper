@@ -56,6 +56,9 @@ def remove_duplicates(books):
 			unique_books[book["isbn"]] = book
 	return [clean_book(unique_books[isbn]) for isbn in unique_books]
 
+def remove_invalid(books):
+	return [book for book in books if "" not in [book["author"], book["title"]]]
+
 def merge_all(shelves, n=20, minify=False):
 	# Merge all shelves
 	books = []
@@ -64,7 +67,8 @@ def merge_all(shelves, n=20, minify=False):
 	# Remove duplicates
 	print(colored("Cleaning books", 'yellow'))
 	books = remove_duplicates(books)
-	print(colored("Books cleaned", 'green'))
+	print(colored("Removing invalid", 'yellow'))
+	books = remove_invalid(books)
 	# Dump all books
 	with open("books/_books.json".format(shelf), "w") as f:
 		if minify:

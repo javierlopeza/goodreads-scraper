@@ -6,7 +6,8 @@ from termcolor import colored
 valid_chars = "".join(map(chr, range(32,  256)))
 def clean_string(s):
 	r = re.sub('[^{}]+'.format(valid_chars), '', s)
-	return r.strip()
+	r = r.strip()
+	return r
 
 def validate_review(review):
 	c1 = "(hide spoiler)" not in review
@@ -29,6 +30,7 @@ def clean_book(book):
 	for k in book:
 		if type(book[k]) == str:
 			book[k] = clean_string(book[k])
+			book[k] = None if book[k] == "" else book[k]
 	book["reviews"] = clean_reviews(book["reviews"])
 	return book
 
@@ -61,7 +63,7 @@ def remove_duplicates(books):
 	return [clean_book(unique_books[isbn]) for isbn in unique_books]
 
 def remove_invalid(books):
-	return [book for book in books if "" not in [book["author"], book["title"]]]
+	return [book for book in books if None not in [book["author"], book["title"]]]
 
 def merge_all(shelves, n=20, minify=False):
 	# Merge all shelves

@@ -32,6 +32,9 @@ def clean_book(book):
 	book["reviews"] = clean_reviews(book["reviews"])
 	return book
 
+def clean_isbn(isbn):
+	return str(isbn).strip()
+
 def merge_shelf(shelf, n):
 	books = []
 	# Merge first "n" pages for shelf
@@ -50,6 +53,7 @@ def merge_shelf(shelf, n):
 def remove_duplicates(books):
 	unique_books = {}
 	for book in books:
+		book["isbn"] = clean_isbn(book["isbn"])
 		if book["isbn"] in unique_books and len(book["genres"]) > len(unique_books[book["isbn"]]["genres"]):
 			unique_books[book["isbn"]] = book
 		elif book["isbn"] not in unique_books:

@@ -1,3 +1,5 @@
+import argparse
+
 import requests
 import bs4 as bs
 from urllib.parse import quote
@@ -31,7 +33,9 @@ def print_book(book):
 
 
 class GoodreadsScraper():
-    def __init__(self):
+    def __init__(self, skip_processed_shelves, use_saved_books):
+        self.skip_processed_shelves = skip_processed_shelves
+        self.use_saved_books = use_saved_books
         self.shelves = []
         self.shelves_stats = {}
 
@@ -40,14 +44,14 @@ class GoodreadsScraper():
             self.shelves = f.read().splitlines()
 
     def scrap_shelves(self):
-        for shelf in self.shelves:
-            for i in range(1, PAGES_PER_SHELF + 1):
+        for i in range(1, PAGES_PER_SHELF + 1):
+            for shelf in self.shelves:
                 self.scrap_shelf(shelf, i)
 
     def scrap_shelf(self, shelf, i):
         print(colored("Started - {} - page {}".format(shelf, i), 'yellow', attrs=['bold']))
 
-        if os.path.isfile("shelves_pages/{}_{}.json".format(shelf, i)):
+        if self.skip_processed_shelves and os.path.isfile("shelves_pages/{}_{}.json".format(shelf, i)):
             print(colored("Finished - {} - page {} - already exists...".format(shelf, i), "green", attrs=['bold']))
             return -1
 
@@ -84,7 +88,7 @@ class GoodreadsScraper():
     def scrap_book(self, book_url):
         try:
             book_source_page_path = "./books_source_pages/{}".format(quote(book_url, safe=""))
-            if os.path.isfile(book_source_page_path):
+            if self.use_saved_books and os.path.isfile(book_source_page_path):
                 soup_book = bs.BeautifulSoup(open(book_source_page_path), "html.parser")
             else:
                 source_book = requests.get(book_url, timeout=5)
@@ -190,5 +194,10 @@ class GoodreadsScraper():
         self.save_stats()
 
 
-scraper = GoodreadsScraper()
+parser = argparse.ArgumentParser(description='Goodreads books scraper')
+parser.add_argument('--skip_processed_shelves', action='store_true', help='Skip already processed shelves.')
+parser.add_argument('--use_saved_books', action='store_true', help='Use saved books source files.')
+args = parser.parse_args()
+
+scraper = GoodreadsScraper(args.skip_processed_shelves, args.use_saved_books)
 scraper.run()

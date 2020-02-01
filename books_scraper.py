@@ -83,9 +83,9 @@ class GoodreadsScraper():
             source_book = requests.get(book_url, timeout=5)
             soup_book = bs.BeautifulSoup(source_book.content, features="html.parser")
 
-            isbn = soup_book.find("meta", {"property": "books:isbn"}).get("content")
+            isbn = str(soup_book.find("meta", {"property": "books:isbn"}).get("content"))
             if isbn == "null":
-                raise Exception("Null ISBN error")
+                isbn = None
 
             metacol = soup_book.find(id="metacol")
             title = metacol.find(id="bookTitle").text.strip()
@@ -124,7 +124,7 @@ class GoodreadsScraper():
                 "author": author,
                 "description": description,
                 "img_url": img_url,
-                "isbn": str(isbn),
+                "isbn": isbn,
                 "rating_count": int(rating_count),
                 "rating_average": float(rating_average),
                 "date_published": str(date_published),

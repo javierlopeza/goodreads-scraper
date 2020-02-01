@@ -30,15 +30,21 @@ def print_book(book):
 class GoodreadsScraper():
     def __init__(self):
         self.shelves = []
+        self.shelves_stats = {}
 
     def load_shelves(self):
         with open("shelves.txt", "r") as f:
             self.shelves = f.read().splitlines()
 
-    def scrap_shelf(self, i, shelf):
+    def scrap_shelves(self):
+        for shelf in self.shelves:
+            for i in range(1, PAGES_PER_SHELF + 1):
+                self.scrap_shelf(shelf, i)
+
+    def scrap_shelf(self, shelf, i):
         print(colored("Started - {} - page {}".format(shelf, i), 'yellow', attrs=['bold']))
 
-        if os.path.isfile("books/{}_{}.json".format(shelf, i)):
+        if os.path.isfile("shelves_pages/{}_{}.json".format(shelf, i)):
             print(colored("Finished - {} - page {} - already exists...".format(shelf, i), "green", attrs=['bold']))
             return -1
 
@@ -54,10 +60,10 @@ class GoodreadsScraper():
         for elem in soup.find_all(class_="bookTitle"):
             url = elem.get("href")
             books_urls.append(BASE_URL + url)
-        books = Parallel(n_jobs=1)(delayed(self.scrap_book)(book_url) for book_url in books_urls)
+        books = Parallel(n_jobs=cpu_count())(delayed(self.scrap_book)(book_url) for book_url in books_urls)
         books = list(filter(lambda x: x is not None, books))
 
-        with open("books/{}_{}.json".format(shelf, i), "w") as f:
+        with open("shelves_pages/{}_{}.json".format(shelf, i), "w") as f:
             json.dump(
                 {"books": books},
                 f,
@@ -66,6 +72,8 @@ class GoodreadsScraper():
                 sort_keys=True,
                 ensure_ascii=False
             )
+        self.shelves_stats["{}_{}".format(shelf, i)] = {"scraped": len(books), "expected": len(books_urls)}
+        self.save_stats()
 
         print(colored("Finished - {} - page {} with {}/{} books".format(shelf, i, len(books), len(books_urls)), 'green', attrs=['bold']))
         return len(books)
@@ -136,13 +144,26 @@ class GoodreadsScraper():
             print(colored("ERROR: {}\n{}URL: {}".format(e, traceback.format_exc(), book_url), 'red'))
             return
 
+    def load_stats(self):
+        with open("stats/shelves_stats.json", "r", encoding='utf-8') as f:
+            self.shelves_stats = json.load(f)
+
+    def save_stats(self):
+        with open("stats/shelves_stats.json", "w") as f:
+            json.dump(
+                self.shelves_stats,
+                f,
+                indent=4,
+                separators=(',', ': '),
+                sort_keys=True,
+                ensure_ascii=False
+            )
+
     def run(self):
+        self.load_stats()
         self.load_shelves()
-        Parallel(n_jobs=cpu_count())(
-            delayed(self.scrap_shelf)(i, shelf)
-            for shelf in self.shelves
-            for i in range(1, PAGES_PER_SHELF + 1)
-        )
+        self.scrap_shelves()
+        self.save_stats()
 
 
 scraper = GoodreadsScraper()

@@ -1,5 +1,6 @@
 import requests
 import bs4 as bs
+from urllib.parse import quote
 
 from multiprocessing import cpu_count
 from joblib import Parallel, delayed
@@ -19,6 +20,7 @@ COOKIE = os.getenv("SESSION_ID")
 # COOKIE = "_session_id2=83f123e4e12000a123f2bc6ff12da123"
 PAGES_PER_SHELF = int(os.getenv("PAGES_PER_SHELF"))
 # PAGES_PER_SHELF = 3
+JOBS = cpu_count()
 
 
 def print_book(book):
@@ -60,7 +62,7 @@ class GoodreadsScraper():
         for elem in soup.find_all(class_="bookTitle"):
             url = elem.get("href")
             books_urls.append(BASE_URL + url)
-        books = Parallel(n_jobs=cpu_count())(delayed(self.scrap_book)(book_url) for book_url in books_urls)
+        books = Parallel(n_jobs=JOBS, verbose=10)(delayed(self.scrap_book)(book_url) for book_url in books_urls)
         books = list(filter(lambda x: x is not None, books))
 
         with open("shelves_pages/{}_{}.json".format(shelf, i), "w") as f:
@@ -80,8 +82,14 @@ class GoodreadsScraper():
 
     def scrap_book(self, book_url):
         try:
-            source_book = requests.get(book_url, timeout=5)
-            soup_book = bs.BeautifulSoup(source_book.content, features="html.parser")
+            book_source_page_path = "./books_source_pages/{}".format(quote(book_url, safe=""))
+            if os.path.isfile(book_source_page_path):
+                soup_book = bs.BeautifulSoup(open(book_source_page_path), "html.parser")
+            else:
+                source_book = requests.get(book_url, timeout=5)
+                soup_book = bs.BeautifulSoup(source_book.content, features="html.parser")
+                with open(book_source_page_path, "w") as book_source_page:
+                    book_source_page.write(str(soup_book))
 
             isbn = str(soup_book.find("meta", {"property": "books:isbn"}).get("content"))
             if isbn == "null":

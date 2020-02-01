@@ -110,3 +110,6 @@ venv.bak/
 books/*.json
 shelves_pages/*.json
 stats/*.json
+
+# source pages
+books_source_pages/http*

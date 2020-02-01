@@ -2,8 +2,13 @@ beautifulsoup4==4.6.3
 bs4==0.0.1
 certifi==2018.8.24
 chardet==3.0.4
+entrypoints==0.3
+flake8==3.7.9
 idna==2.7
 joblib==0.12.3
+mccabe==0.6.1
+pycodestyle==2.5.0
+pyflakes==2.1.1
 python-dotenv==0.10.5
 requests==2.22.0
 termcolor==1.1.0

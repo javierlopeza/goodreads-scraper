@@ -1,6 +1,7 @@
 import requests
 import bs4 as bs
 from urllib.parse import quote
+import re
 
 from multiprocessing import cpu_count
 from joblib import Parallel, delayed
@@ -167,7 +168,22 @@ class GoodreadsScraper():
                 ensure_ascii=False
             )
 
+    def check_cookie(self):
+        print(colored("Checking session cookie...", 'yellow', attrs=['bold']))
+        test_url = BASE_URL + "/shelf/show/mistery?page=2"
+        headers = {"Cookie": COOKIE}
+        source = requests.get(test_url, timeout=10, headers=headers)
+        soup = bs.BeautifulSoup(source.content, features="html.parser")
+        try:
+            validation_clue = soup.body.findAll(text=re.compile('Showing 1'), limit=1)
+            if len(validation_clue) > 0:
+                raise
+        except Exception:
+            raise Exception('Must use a valid session cookie!')
+        print(colored("Session cookie is OK!", 'green', attrs=['bold']))
+
     def run(self):
+        self.check_cookie()
         self.load_stats()
         self.load_shelves()
         self.scrap_shelves()

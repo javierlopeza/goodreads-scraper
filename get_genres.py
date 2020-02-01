@@ -12,4 +12,4 @@ genres = sorted(reduce(lambda r, c: r.union(c), map(lambda b: set(b["genres"]), 
 print(colored("{} unique genres in total!".format(len(genres)), 'green', attrs=["bold"]))
 
 with open("books/_genres.json", "w") as f:
-	json.dump({"genres": genres}, f, indent=4, separators=(',', ': '), sort_keys=True, ensure_ascii=False)
+    json.dump({"genres": genres}, f, indent=4, separators=(',', ': '), sort_keys=True, ensure_ascii=False)

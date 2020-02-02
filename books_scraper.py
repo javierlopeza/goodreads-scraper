@@ -24,6 +24,7 @@ COOKIE = os.getenv("SESSION_ID")
 PAGES_PER_SHELF = int(os.getenv("PAGES_PER_SHELF"))
 # PAGES_PER_SHELF = 3
 JOBS = cpu_count()
+PROCESSING_RATIO_THRESHOLD = 0.9  # 45/50
 
 
 def print_book(book):
@@ -53,8 +54,10 @@ class GoodreadsScraper():
         print(colored("Started - {} - page {}".format(shelf, i), 'yellow', attrs=['bold']))
 
         # Skip this shelf if already processed
-        if self.skip_processed_shelves and os.path.isfile("shelves_pages/{}_{}.json".format(shelf, i)):
-            print(colored("Finished - {} - page {} - already exists...".format(shelf, i), "green", attrs=['bold']))
+        if self.skip_processed_shelves \
+           and os.path.isfile("shelves_pages/{}_{}.json".format(shelf, i)) \
+           and self.shelf_processing_ratio(shelf, i) >= PROCESSING_RATIO_THRESHOLD:
+            print(colored("Finished - {} - page {} - already processed...".format(shelf, i), "magenta", attrs=['bold']))
             return -1
 
         # Get books urls (from disk or request)
@@ -191,6 +194,13 @@ class GoodreadsScraper():
                 sort_keys=True,
                 ensure_ascii=False
             )
+
+    def shelf_processing_ratio(self, shelf, i):
+        shelf_stats = self.shelves_stats["{}_{}".format(shelf, i)]
+        try:
+            return shelf_stats["scraped"] / shelf_stats["expected"]
+        except ZeroDivisionError:
+            return 0
 
     def check_cookie(self):
         print(colored("Checking session cookie...", 'yellow', attrs=['bold']))

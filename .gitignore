@@ -113,3 +113,6 @@ stats/*.json
 
 # source pages
 books_source_pages/http*
+
+# books urls
+shelves_pages_books_urls/*json

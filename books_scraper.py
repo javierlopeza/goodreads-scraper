@@ -33,9 +33,10 @@ def print_book(book):
 
 
 class GoodreadsScraper():
-    def __init__(self, skip_processed_shelves, use_saved_books):
+    def __init__(self, skip_processed_shelves, use_saved_books, use_saved_books_urls):
         self.skip_processed_shelves = skip_processed_shelves
         self.use_saved_books = use_saved_books
+        self.use_saved_books_urls = use_saved_books_urls
         self.shelves = []
         self.shelves_stats = {}
 
@@ -51,25 +52,40 @@ class GoodreadsScraper():
     def scrap_shelf(self, shelf, i):
         print(colored("Started - {} - page {}".format(shelf, i), 'yellow', attrs=['bold']))
 
+        # Skip this shelf if already processed
         if self.skip_processed_shelves and os.path.isfile("shelves_pages/{}_{}.json".format(shelf, i)):
             print(colored("Finished - {} - page {} - already exists...".format(shelf, i), "green", attrs=['bold']))
             return -1
 
-        shelf_url = BASE_URL + "/shelf/show/{}?page={}".format(shelf, i)
-        headers = {"Cookie": COOKIE}
-        try:
-            source = requests.get(shelf_url, timeout=5, headers=headers)
-        except Exception:
-            return 0
-        soup = bs.BeautifulSoup(source.content, features="html.parser")
+        # Get books urls (from disk or request)
+        shelf_books_urls_path = "shelves_pages_books_urls/{}_{}.json".format(shelf, i)
+        if self.use_saved_books_urls and os.path.isfile(shelf_books_urls_path):
+            with open(shelf_books_urls_path, "r", encoding='utf-8') as f:
+                books_urls = json.load(f)["books_urls"]
+        else:
+            shelf_url = BASE_URL + "/shelf/show/{}?page={}".format(shelf, i)
+            headers = {"Cookie": COOKIE}
+            try:
+                source = requests.get(shelf_url, timeout=5, headers=headers)
+            except Exception:
+                return 0
+            soup = bs.BeautifulSoup(source.content, features="html.parser")
+            books_urls = []
+            for elem in soup.find_all(class_="bookTitle"):
+                url = elem.get("href")
+                books_urls.append(BASE_URL + url)
+            with open(shelf_books_urls_path, "w") as f:
+                json.dump(
+                    {"books_urls": books_urls},
+                    f,
+                    indent=4,
+                    separators=(',', ': '),
+                    ensure_ascii=False
+                )
 
-        books_urls = []
-        for elem in soup.find_all(class_="bookTitle"):
-            url = elem.get("href")
-            books_urls.append(BASE_URL + url)
+        # Scrap books urls
         books = Parallel(n_jobs=JOBS, verbose=10)(delayed(self.scrap_book)(book_url) for book_url in books_urls)
         books = list(filter(lambda x: x is not None, books))
-
         with open("shelves_pages/{}_{}.json".format(shelf, i), "w") as f:
             json.dump(
                 {"books": books},
@@ -79,6 +95,8 @@ class GoodreadsScraper():
                 sort_keys=True,
                 ensure_ascii=False
             )
+
+        # Save shelf's stats
         self.shelves_stats["{}_{}".format(shelf, i)] = {"scraped": len(books), "expected": len(books_urls)}
         self.save_stats()
 
@@ -87,9 +105,11 @@ class GoodreadsScraper():
 
     def scrap_book(self, book_url):
         try:
+            # Get book's source page (from disk or request)
             book_source_page_path = "./books_source_pages/{}".format(quote(book_url, safe=""))
             if self.use_saved_books and os.path.isfile(book_source_page_path):
                 soup_book = bs.BeautifulSoup(open(book_source_page_path), "html.parser")
+                print(colored("FOUND IN CACHE", "magenta", attrs=['bold']))
             else:
                 source_book = requests.get(book_url, timeout=5)
                 soup_book = bs.BeautifulSoup(source_book.content, features="html.parser")
@@ -197,7 +217,8 @@ class GoodreadsScraper():
 parser = argparse.ArgumentParser(description='Goodreads books scraper')
 parser.add_argument('--skip_processed_shelves', action='store_true', help='Skip already processed shelves.')
 parser.add_argument('--use_saved_books', action='store_true', help='Use saved books source files.')
+parser.add_argument('--use_saved_books_urls', action='store_true', help='Use saved books urls.')
 args = parser.parse_args()
 
-scraper = GoodreadsScraper(args.skip_processed_shelves, args.use_saved_books)
+scraper = GoodreadsScraper(args.skip_processed_shelves, args.use_saved_books, args.use_saved_books_urls)
 scraper.run()

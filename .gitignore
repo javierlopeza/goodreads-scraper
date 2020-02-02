@@ -117,5 +117,5 @@ books_source_pages/http*
 # books urls
 shelves_pages_books_urls/*.json
 
-# results
-_results/*.json
+# final data
+_data/*.json

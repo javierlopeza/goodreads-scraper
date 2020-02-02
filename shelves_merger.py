@@ -38,7 +38,7 @@ class ShelvesMerger():
             book["reviews"] = [r for r in book["reviews"] if r != "[image error]"]
 
     def dump_books(self):
-        with open("_results/books.json", "w") as f:
+        with open("_data/books.json", "w") as f:
             json.dump(
                 {"books": self.books},
                 f,

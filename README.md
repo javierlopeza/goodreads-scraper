@@ -10,7 +10,7 @@ Python script to scrap [Goodreads](https://www.goodreads.com) books shelves.
     2. [Get your cookies](#step-2-get-your-cookies)
     3. [Run books scraper](#step-3-run-books-scraper)
     4. [Run shelves merger](#step-4-run-shelves-merger)
-    5. [Retrieve all unique authors](#step-5-retrieve-all-unique-authors)
+    5. [Retrieve all unique authors and genres](#step-5-retrieve-all-unique-authors-and-genres)
 
 ## Installation
 
@@ -37,7 +37,7 @@ thriller
 
 ### **Step 2: Get your cookies**
 
-To retrieve all pages you want you'll need to log in into Goodreads and check the value of your `_session_id2` cookie that will be set automatically in your web browser after making a request logged in. Set the value of the constant COOKIE in `books_scraper.py` with the one you obtained from your browser.
+To retrieve all pages you want you'll need to log in into Goodreads and check the value of your `_session_id2` cookie that will be set automatically in your web browser after making a request logged in. Set the value of the constant COOKIE in `books_scraper.py` with the one you obtained from your browser (or set it on your `.env` file).
 
 If you skip this step, every request you make to get a shelf will return the first page, even if you ask for the second one.
 
@@ -51,7 +51,7 @@ python books_scaper.py
 
 You can set how many pages you want to scrap from each shelf by changing the value of the constant `PAGES_PER_SHELF` to whatever you want.
 
-By the end of this step you will end up with 1 json file per page per shelf inside the `books` folder. Something like this:
+By the end of this step you will end up with 1 json file per page per shelf inside the `shelves_pages` folder. Something like this:
 
 ```
 fantasy_1.json
@@ -69,22 +69,22 @@ So `adventure_2.json` corresponds to page number 2 of the _adventure_ books shel
 
 ### **Step 4: Run shelves merger**
 
-But we just want one big `_books.json` file... (the underscore is used just to see the file at the top of our directory).
+But we just want one big `books.json` file...
 
-Just run the following command to merge all generated files into one big `_books.json` file:
+Just run the following command to merge all generated files into one big clean `books.json` file:
 
 ```
 python shelves_merger.py
 ```
 
-This script will collect all books, remove duplicates, clean the attributes of the books and validate and clean all reviews.
+This script will collect all books, remove duplicates, clean the attributes of the books and clean all reviews.
 
-### **Step 5: Retrieve all unique authors**
+### **Step 5: Retrieve all unique authors and genres**
 
-The final step is to generate a json file containing all authors names by running the following command:
+The final step is to generate json files containing all authors names and genres by running the following command:
 
 ```
-python get_authors.py
+python get_data.py
 ```
 
-With this you will end up with a json file called `_authors.json` containing a list of all unique authors.
+With this you will end up with a json file called `authors.json` containing a list of all unique authors and one for the genres called `genres.json`.

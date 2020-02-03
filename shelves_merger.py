@@ -40,7 +40,22 @@ class ShelvesMerger():
     def clean_genres(self):
         print(colored("Cleaning genres...", 'yellow'))
         for book in self.books:
+            # Remove duplicates
             book["genres"] = list(set(book["genres"]))
+            # Fix bad-written genres
+            book["genres"] = [self.fix_genre(genre) for genre in book["genres"]]
+
+    def fix_genre(self, genre):
+        fixes = [
+            ("Hi...", "History"),
+            ("Lite...", "Literature"),
+            ("International Rel...", "International Relations"),
+            ("Science Fiction R...", "Science Fiction Romance"),
+            ("Complementary Med...", "Complementary Medicine")
+        ]
+        for (old, new) in fixes:
+            genre = genre.replace(old, new)
+        return genre
 
     def dump_books(self):
         with open("_data/merged_books.json", "w") as f:

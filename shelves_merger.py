@@ -37,6 +37,11 @@ class ShelvesMerger():
         for book in self.books:
             book["reviews"] = [r for r in book["reviews"] if r != "[image error]"]
 
+    def clean_genres(self):
+        print(colored("Cleaning genres...", 'yellow'))
+        for book in self.books:
+            book["genres"] = list(set(book["genres"]))
+
     def dump_books(self):
         with open("_data/merged_books.json", "w") as f:
             json.dump(
@@ -53,6 +58,7 @@ class ShelvesMerger():
         self.remove_duplicated_books()
         self.nullify_empty_attrs()
         self.clean_reviews()
+        self.clean_genres()
         self.dump_books()
 
 

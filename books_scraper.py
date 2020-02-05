@@ -44,7 +44,7 @@ class GoodreadsScraper():
     def load_shelves(self):
         with open("shelves.txt", "r") as f:
             self.shelves = f.read().splitlines()
-        for year in range(1980, 2021):
+        for year in range(1950, 2021):
             self.shelves.append(str(year))
 
     def scrap_shelves(self):

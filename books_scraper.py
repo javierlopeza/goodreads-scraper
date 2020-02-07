@@ -24,7 +24,7 @@ COOKIE = os.getenv("SESSION_ID")
 PAGES_PER_SHELF = int(os.getenv("PAGES_PER_SHELF"))
 # PAGES_PER_SHELF = 3
 JOBS = cpu_count()
-PROCESSING_RATIO_THRESHOLD = 0.9  # 45/50
+PROCESSING_RATIO_THRESHOLD = 1.0
 
 
 def print_book(book):
@@ -114,67 +114,103 @@ class GoodreadsScraper():
             book_source_page_path = "./books_source_pages/{}".format(quote(book_url, safe=""))
             if self.use_saved_books and os.path.isfile(book_source_page_path):
                 soup_book = bs.BeautifulSoup(open(book_source_page_path), "html.parser")
-                print(colored("FOUND IN CACHE", "magenta", attrs=['bold']))
             else:
                 source_book = requests.get(book_url, timeout=5)
                 soup_book = bs.BeautifulSoup(source_book.content, features="html.parser")
                 with open(book_source_page_path, "w") as book_source_page:
                     book_source_page.write(str(soup_book))
 
-            isbn = str(soup_book.find("meta", {"property": "books:isbn"}).get("content"))
+            try:
+                isbn = str(soup_book.find("meta", {"property": "books:isbn"}).get("content"))
+            except:
+                isbn = None
             if isbn == "null":
                 isbn = None
 
             metacol = soup_book.find(id="metacol")
+
             title = metacol.find(id="bookTitle").text.strip()
             author = metacol.find(class_="authorName").text.strip()
 
-            description_div = metacol.find(id="description")
-            description = description_div.find_all("span")[-1].text.strip() if description_div else ""
+            try:
+                description = metacol.find(id="description").find_all("span")[-1].text.strip()
+            except:
+                description = None
+            try:
+                img_url = soup_book.find(id="coverImage").get("src")
+            except:
+                img_url = None
+            try:
+                rating_count = int(metacol.find("meta", {"itemprop": "ratingCount"}).get("content"))
+            except:
+                rating_count = None
+            try:
+                rating_average = float(metacol.find("span", {"itemprop": "ratingValue"}).text)
+            except:
+                rating_average = None
+            try:
+                pages = int(soup_book.find("meta", {"property": "books:page_count"}).get("content"))
+            except:
+                pages = None
 
-            img = soup_book.find(id="coverImage")
-            img_url = img.get("src") if img else ""
+            try:
+                details = metacol.find(id="details")
+            except:
+                details = None
 
-            rating_count = metacol.find("meta", {"itemprop": "ratingCount"}).get("content")
-            rating_average = metacol.find("span", {"itemprop": "ratingValue"}).text
+            try:
+                book_format = details.find("span", {"itemprop": "bookFormat"}).text
+            except:
+                book_format = None
+            try:
+                language = details.find("div", {"itemprop": "inLanguage"}).text
+            except:
+                language = None
 
-            pages = soup_book.find("meta", {"property": "books:page_count"}).get("content")
+            try:
+                publication = details.find_all(class_="row")[1].text.strip()
+            except:
+                publication = None
+            try:
+                date_published = str(publication.split("\n")[1].strip())
+            except:
+                date_published = None
+            try:
+                publisher = publication.split("\n")[2].strip()[3:]
+            except:
+                publisher = None
 
-            details = metacol.find(id="details")
+            try:
+                genres = soup_book.find_all(class_="actionLinkLite bookPageGenreLink")
+                genres = [genre.text for genre in genres]
+            except:
+                genres = []
 
-            book_format_div = details.find("span", {"itemprop": "bookFormat"}) if details else None
-            book_format = book_format_div.text if book_format_div else ""
+            try:
+                reviews_divs = soup_book.find_all(class_="reviewText stacked")
+                reviews = [review_div.find("span").find_all("span")[-1].text for review_div in reviews_divs]
+            except:
+                reviews = []
 
-            language_div = details.find("div", {"itemprop": "inLanguage"}) if details else None
-            language = language_div.text if language_div else ""
-
-            publication = details.find_all(class_="row")[1].text.strip() if details else ""
-            date_published = publication.split("\n")[1].strip() if publication else ""
-            publisher = publication.split("\n")[2].strip()[3:] if publication else ""
-
-            genres = soup_book.find_all(class_="actionLinkLite bookPageGenreLink")
-            genres = [genre.text for genre in genres]
-
-            reviews_divs = soup_book.find_all(class_="reviewText stacked")
-            reviews = [review_div.find("span").find_all("span")[-1].text for review_div in reviews_divs]
             book = {
                 "title": title,
                 "author": author,
                 "description": description,
                 "img_url": img_url,
                 "isbn": isbn,
-                "rating_count": int(rating_count),
-                "rating_average": float(rating_average),
-                "date_published": str(date_published),
+                "rating_count": rating_count,
+                "rating_average": rating_average,
+                "date_published": date_published,
                 "publisher": publisher,
                 "genres": genres,
                 "book_format": book_format,
-                "pages": int(pages),
+                "pages": pages,
                 "language": language,
                 "goodreads_url": book_url,
                 "reviews": reviews
             }
-            print_book(book)
+
+            # print_book(book)
             return book
 
         except Exception as e:

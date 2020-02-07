@@ -27,11 +27,16 @@ class ShelvesMerger():
         self.books = list(unique_books.values())
         print(colored("Duplicates removed to get a total of {} books".format(len(self.books)), 'green', attrs=["bold"]))
 
+    def remove_invalid_books(self):
+        print(colored("Removing invalid books...", 'yellow'))
+        self.books = [book for book in self.books if None not in [book["title"], book["author"]]]
+        print(colored("{} valid books".format(len(self.books)), 'green', attrs=["bold"]))
+
     def nullify_empty_attrs(self):
         print(colored("Nullifying empty attributes...", 'yellow'))
         for book in self.books:
             for attr in book:
-                if book[attr] == "":
+                if type(book[attr]) is str and book[attr].strip() == "":
                     book[attr] = None
 
     def clean_reviews(self):
@@ -97,6 +102,7 @@ class ShelvesMerger():
     def run(self):
         self.merge_shelves_pages()
         self.remove_duplicated_books()
+        self.remove_invalid_books()
         self.nullify_empty_attrs()
         self.clean_reviews()
         self.clean_genres()

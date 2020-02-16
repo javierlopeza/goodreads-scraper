@@ -122,3 +122,4 @@ _data/*.json
 
 # authors folders
 authors_urls/*.json
+authors_source_pages_mobile/http*

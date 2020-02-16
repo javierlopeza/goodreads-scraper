@@ -132,6 +132,18 @@ class GoodreadsAuthorsScraper():
         place = " ".join(place.strip().split())
         return place
 
+    def remove_duplicated_authors(self):
+        new_authors = []
+        self.authors = sorted(self.authors, key=lambda a: a["name"])
+        for i in range(len(self.authors) - 1):
+            if self.authors[i]["name"] != self.authors[i + 1]["name"]:
+                new_authors.append(self.authors[i])
+        self.authors = new_authors
+
+    def load_authors(self):
+        with open("_data/authors.json", "r", encoding="utf-8") as f:
+            self.authors = json.load(f)["authors"]
+
     def dump_authors(self):
         print(colored("Dumping authors...", 'yellow'))
         with open("_data/authors.json", "w") as f:
@@ -142,7 +154,9 @@ class GoodreadsAuthorsScraper():
         self.load_authors_urls()
         self.load_books()
         # self.scrap_authors_urls()
-        self.scrap_authors()
+        # self.scrap_authors()
+        self.load_authors()
+        self.remove_duplicated_authors()
         self.dump_authors()
 
 

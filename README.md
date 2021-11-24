@@ -46,7 +46,7 @@ If you skip this step, every request you make to get a shelf will return the fir
 In this step you will scrap books from the selected shelves by running the following command:
 
 ```
-python books_scaper.py
+python books_scraper.py
 ```
 
 You can set how many pages you want to scrap from each shelf by changing the value of the constant `PAGES_PER_SHELF` to whatever you want.
